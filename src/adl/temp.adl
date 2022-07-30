@@ -1,0 +1,1048 @@
+<ADL>
+	<Processor Name="tmp">
+	</Processor>
+  <Coding>
+    <Param Name="CaseSensitive" Value="false"/>
+    <Param Name="Endian" Value="little"/>
+    <Param Name="BitsPerMAU" Value="8"/>
+    <Number Name="signed8offset">
+      <Instance Value="-#:8"/>
+    </Number>
+    <Number Name="signed8">
+      <Instance Value="-#:8"/>
+    </Number>
+    <Number Name="mem6">
+      <Instance Value="#:6"/>
+    </Number>
+    <Number Name="mem8">
+      <Instance Value="#:8"/>
+    </Number>
+    <Number Name="mem16">
+      <Instance Value="$#:16"/>
+    </Number>
+    <Number Name="mem32">
+      <Instance Value="$#:32"/>
+    </Number>
+    <Number Name="mem64">
+      <Instance Value="$#:64"/>
+    </Number>
+    <Number Name="address16">
+      <Instance Value="$#:16" Cond="'processorbits'==16"/>
+    </Number>
+    <Number Name="address32">
+      <Instance Value="$#:32" Cond="'processorbits'==32"/>
+    </Number>
+    <Number Name="address64">
+      <Instance Value="$#:64" Cond="'processorbits'==32"/>
+    </Number>
+    <Number Name="rel8" relOfs="1">
+      <Instance Value="-$#:8"/>
+    </Number>
+    <Number Name="rel8n" relOfs="-1">
+      <Instance Value="-$#:8"/>
+    </Number>
+    <Number Name="rel16" relOfs="2">
+      <Instance Value="-$#:16" Cond="'processorbits'==16"/>
+    </Number>
+    <Number Name="rel16n" relOfs="-2">
+      <Instance Value="-$#:16" Cond="'processorbits'==16"/>
+    </Number>
+    <Number Name="rel16j" relOfs="2">
+      <Instance Value="-$#:16" Cond="'processorbits'==16"/>
+    </Number>
+    <Number Name="rel16jn" relOfs="-2">
+      <Instance Value="-$#:16" Cond="'processorbits'==16"/>
+    </Number>
+    <Number Name="rel32" relOfs="4">
+      <Instance Value="-$#:32" Cond="'processorbits'!=16"/>
+    </Number>
+    <Number Name="scale">
+      <Instance Value="1;0"/>
+      <Instance Value="2;1"/>
+      <Instance Value="4;2"/>
+      <Instance Value="8;3"/>
+    </Number>
+    <Number Name="zero">
+      <Instance Value="0;0"/>
+    </Number>
+    <Number Name="one">
+      <Instance Value="1;1"/>
+    </Number>
+    <StateVars>
+      <Instance  Name="processorbits" Init="16"/>
+    </StateVars>
+    <State Name="addr16">
+      <When Cond="'processorbits'==16" Value=""/>
+      <When Cond="'processorbits'==32" Value="0x67:8"/>
+    </State>
+    <State Name="addr32">
+      <When Cond="'processorbits'==32" Value=""/>
+      <When Cond="'processorbits'==16" Value="0x67:8"/>
+      <When Cond="'processorbits'==64" Value="0x67:8"/>
+    </State>
+    <State Name="addr64">
+      <When Cond="true" Value=""/>
+    </State>
+    <State Name="data16">
+      <When Cond="'processorbits'==16" Value=""/>
+      <When Cond="'processorbits'==32" Value="0x66:8"/>
+    </State>
+    <State Name="data32">
+      <When Cond="'processorbits'==32" Value=""/>
+      <When Cond="'processorbits'==16" Value="0x66:8"/>
+      <When Cond="'processorbits'==64" Value="0x66:8"/>
+    </State>
+    <State Name="data64">
+      <When Cond="true" Value=""/>
+    </State>
+    <State Name="rex">
+      <When Cond="true" Value="0x4:4"/>
+    </State>
+    <Register Class="general">
+      <Instance Name="al" Ord="0" R="0" W="0" Class="reg8,reg8b,low"/>
+      <Instance Name="ah" Ord="4" R="0" W="0" Class="reg8,high"/>
+      <Instance Name="ax" Ord="0" R="0" W="0" Class="reg16"/>
+      <Instance Name="eax" Ord="0" R="0" W="0" Class="base32, index32, reg32,base32b, index32b, reg32b"/>
+      <Instance Name="rax" Ord="0" R="0" W="8" Class="base64, index64, reg64,base64b, index64b, reg64b, reg64d"/>
+      <Instance Name="r8b" Ord="0" R="4" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="r8w" Ord="0" R="4" W="0" Class="reg16b"/>
+      <Instance Name="r8d" Ord="0" R="4" W="0" Class="base32b, index32b, reg32b"/>
+      <Instance Name="r8" Ord="0" R="4" W="8" Class="base64b, index64b, reg64b, reg64d"/>
+    </Register>
+    <Register Class="general">
+      <Instance Name="cl" Ord="1" R="0" W="0" Class="reg8,reg8b,low"/>
+      <Instance Name="ch" Ord="5" R="0" W="0" Class="reg8,high"/>
+      <Instance Name="cx" Ord="1" R="0" W="0" Class="reg16"/>
+      <Instance Name="ecx" Ord="1" R="0" W="0" Class="base32, index32, reg32,base32b, index32b, reg32b"/>
+      <Instance Name="rcx" Ord="1" R="0" W="8" Class="base64, index64, reg64,base64b, index64b, reg64b, reg64d"/>
+      <Instance Name="r9b" Ord="1" R="4" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="r9w" Ord="1" R="4" W="0" Class="reg16b"/>
+      <Instance Name="r9d" Ord="1" R="4" W="0" Class="base32b, index32b, reg32b"/>
+      <Instance Name="r9" Ord="1" R="4" W="8" Class="base64b, index64b, reg64b, reg64d"/>
+    </Register>
+    <Register Class="general">
+      <Instance Name="dl" Ord="2" R="0" W="0" Class="reg8,reg8b,low"/>
+      <Instance Name="dh" Ord="6" R="0" W="0" Class="reg8,high"/>
+      <Instance Name="dx" Ord="2" R="0" W="0" Class="reg16"/>
+      <Instance Name="edx" Ord="2" R="0" W="0" Class="base32, index32, reg32,base32b, index32b, reg32b"/>
+      <Instance Name="rdx" Ord="2" R="0" W="8" Class="base64, index64, reg64,base64b, index64b, reg64b, reg64d"/>
+      <Instance Name="r10b" Ord="2" R="4" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="r10w" Ord="2" R="4" W="0" Class="reg16b"/>
+      <Instance Name="r10d" Ord="2" R="4" W="0" Class="base32b, index32b, reg32b"/>
+      <Instance Name="r10" Ord="2" R="4" W="8" Class="base64b, index64b, reg64b, reg64d"/>
+    </Register>
+    <Register Class="general">
+      <Instance Name="bl" Ord="3" R="0" W="0" Class="reg8,reg8b,low,pushed"/>
+      <Instance Name="bh" Ord="7" R="0" W="0" Class="reg8,high,pushed"/>
+      <Instance Name="bx" Ord="3" base="0" R="0" W="0" Class="base16, reg16, pushed"/>
+      <Instance Name="ebx" Ord="3" R="0" W="0" Class="base32, index32, reg32,base32b, index32b, reg32b,pushed"/>
+      <Instance Name="rbx" Ord="3" R="0" W="8" Class="base64, index64, reg64,base64b, index64b, reg64b, reg64d"/>
+      <Instance Name="r11b" Ord="3" R="4" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="r11w" Ord="3" R="4" W="0" Class="reg16b"/>
+      <Instance Name="r11d" Ord="3" R="4" W="0" Class="base32b, index32b, reg32b"/>
+      <Instance Name="r11" Ord="3" R="4" W="8" Class="base64b, index64b, reg64b, reg64d"/>
+    </Register>
+    <Register Class="stack">
+      <Instance Name="spl" Ord="4" R="0" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="sp" Ord="4" R="0" W="0" Class="reg16"/>
+      <Instance Name="esp" Ord="4" R="0" W="0" Class="base32, reg32, base32b, reg32b"/>
+      <Instance Name="rsp" Ord="4" R="0" W="8" Class="base64, reg64, base64b, reg64b, reg64d"/>
+      <Instance Name="r12b" Ord="4" R="4" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="r12w" Ord="4" R="4" W="0" Class="reg16b"/>
+      <Instance Name="r12d" Ord="4" R="4" W="0" Class="base32b, reg32b"/>
+      <Instance Name="r12" Ord="4" R="4" W="8" Class="base64b, reg64b, reg64d"/>
+    </Register>
+    <Register Class="stack">
+      <Instance Name="bpl" Ord="5" R="0" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="bp" Ord="5" base="1" R="0" W="0" Class="base16, reg16"/>
+      <Instance Name="ebp" Ord="5" R="0" W="0" Class="base32, index32, reg32,base32b, index32b, reg32b"/>
+      <Instance Name="rbp" Ord="5" R="0" W="8" Class="base64, index64, reg64,base64b, index64b, reg64b, reg64d"/>
+      <Instance Name="r13b" Ord="5" R="4" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="r13w" Ord="5" R="4" W="0" Class="reg16b"/>
+      <Instance Name="r13d" Ord="5" R="4" W="0" Class="base32b, index32b, reg32b"/>
+      <Instance Name="r13" Ord="5" R="4" W="8" Class="base64b, index64b, reg64b, reg64d"/>
+    </Register>
+    <Register Class="general">
+      <Instance Name="sil" Ord="6" R="0" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="si" Ord="6" index="0" R="0" W="0" Class="reg16,index16,pushed"/>
+      <Instance Name="esi" Ord="6" R="0" W="0" Class="base32, index32, reg32,base32b, index32b, reg32b,pushed"/>
+      <Instance Name="rsi" Ord="6" R="0" W="8" Class="base64, index64, reg64,base64b, index64b, reg64b, reg64d"/>
+      <Instance Name="r14b" Ord="6" R="4" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="r14w" Ord="6" R="4" W="0" Class="reg16b"/>
+      <Instance Name="r14d" Ord="6" R="4" W="0" Class="base32b, index32b, reg32b"/>
+      <Instance Name="r14" Ord="6" R="4" W="8" Class="base64b, index64b, reg64b, reg64d"/>
+    </Register>
+    <Register Class="general">
+      <Instance Name="dil" Ord="7" R="0" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="di" Ord="7" index="1" R="0" W="0" Class="reg16,index16, pushed"/>
+      <Instance Name="edi" Ord="7" R="0" W="0" Class="base32, index32, reg32,base32b, index32b, reg32b, pushed"/>
+      <Instance Name="rdi" Ord="7" R="0" W="8" Class="base64, index64, reg64,base64b, index64b, reg64b, reg64d"/>
+      <Instance Name="r15b" Ord="7" R="4" W="0" Class="reg8b,reg8b,low"/>
+      <Instance Name="r15w" Ord="7" R="4" W="0" Class="reg16b"/>
+      <Instance Name="r15d" Ord="7" R="4" W="0" Class="base32b, index32b, reg32b"/>
+      <Instance Name="r15" Ord="7" R="4" W="8" Class="base64b, index64b, reg64b, reg64d"/>
+    </Register>
+    <Register Class="regsse">
+      <Instance Name="mm0" Ord="0" R="0" W="0" Class="regmm"/>
+      <Instance Name="xmm0" Ord="0" R="0" W="0" Class="regsse"/>
+      <Instance Name="xmm8" Ord="0" R="4" W="0" Class="regsse"/>
+    </Register>
+    <Register Class="regsse">
+      <Instance Name="mm1" Ord="1" R="0" W="0" Class="regmm"/>
+      <Instance Name="xmm1" Ord="1" R="0" W="0" Class="regsse"/>
+      <Instance Name="xmm9" Ord="1" R="4" W="0" Class="regsse"/>
+    </Register>
+    <Register Class="regsse">
+      <Instance Name="mm2" Ord="2" R="0" W="0" Class="regmm"/>
+      <Instance Name="xmm2" Ord="2" R="0" W="0" Class="regsse,regsseb"/>
+      <Instance Name="xmm10" Ord="2" R="4" W="0" Class="sseb"/>
+    </Register>
+    <Register Class="regsse">
+      <Instance Name="mm3" Ord="3" R="0" W="0" Class="regmm"/>
+      <Instance Name="xmm3" Ord="3" R="0" W="0" Class="regsse,regsseb"/>
+      <Instance Name="xmm11" Ord="3" R="4" W="0" Class="sseb"/>
+    </Register>
+
+    <Register Class="regsse">
+      <Instance Name="mm4" Ord="4" R="0" W="0" Class="regmm"/>
+      <Instance Name="xmm4" Ord="4" R="0" W="0" Class="regsse,regsseb"/>
+      <Instance Name="xmm12" Ord="4" R="4" W="0" Class="sseb"/>
+    </Register>
+    <Register Class="regsse">
+      <Instance Name="mm5" Ord="5" R="0" W="0" Class="regmm"/>
+      <Instance Name="xmm5" Ord="5" R="0" W="0" Class="regsse,regsseb"/>
+      <Instance Name="xmm13" Ord="5" R="4" W="0" Class="sseb"/>
+    </Register>
+    <Register Class="regsse">
+      <Instance Name="mm6" Ord="6" R="0" W="0" Class="regmm"/>
+      <Instance Name="xmm6" Ord="6" R="0" W="0" Class="regsse,regsseb"/>
+      <Instance Name="xmm14" Ord="6" R="4" W="0" Class="sseb"/>
+    </Register>
+    <Register Class="regsse">
+      <Instance Name="mm7" Ord="7" R="0" W="0" Class="regmm"/>
+      <Instance Name="xmm7" Ord="7" R="0" W="0" Class="regsse,regsseb"/>
+      <Instance Name="xmm15" Ord="7" R="4" W="0" Class="sseb"/>
+    </Register>
+    <Register Class="segment">
+      <Instance Name="es" Ord="0" Prefix="0x26"/>
+    </Register>
+    <Register Class="segment">
+      <Instance Name="cs" Ord="1" Prefix="0x2e"/>
+    </Register>
+    <Register Class="segment">
+      <Instance Name="ss" Ord="2" Prefix="0x36"/>
+    </Register>
+    <Register Class="segment">
+      <Instance Name="ds" Ord="3" Prefix="0x3e"/>
+    </Register>
+    <Register Class="segment">
+      <Instance Name="fs" Ord="4" Prefix="0x64"/>
+    </Register>
+    <Register Class="segment">
+      <Instance Name="gs" Ord="5" Prefix="0x65"/>
+    </Register>
+    <Register Class="floatreg">
+      <Instance Name="st0" Ord="0" />
+    </Register>
+    <Register Class="floatreg">
+      <Instance Name="st1" Ord="1" />
+    </Register>
+    <Register Class="floatreg">
+      <Instance Name="st2" Ord="2" />
+    </Register>
+    <Register Class="floatreg">
+      <Instance Name="st3" Ord="3" />
+    </Register>
+    <Register Class="floatreg">
+      <Instance Name="st4" Ord="4" />
+    </Register>
+    <Register Class="floatreg">
+      <Instance Name="st5" Ord="5" />
+    </Register>
+    <Register Class="floatreg">
+      <Instance Name="st6" Ord="6" />
+    </Register>
+    <Register Class="floatreg">
+      <Instance Name="st7" Ord="7" />
+    </Register>
+    <Register Class="controlreg">
+      <Instance Name="cr0" Ord="0" />
+    </Register>
+    <Register Class="controlreg">
+      <Instance Name="cr1" Ord="1" />
+    </Register>
+    <Register Class="controlreg">
+      <Instance Name="cr2" Ord="2" />
+    </Register>
+    <Register Class="controlreg">
+      <Instance Name="cr3" Ord="3" />
+    </Register>
+    <Register Class="controlreg">
+      <Instance Name="cr4" Ord="4" />
+    </Register>
+    <Register Class="controlreg">
+      <Instance Name="cr5" Ord="5" />
+    </Register>
+    <Register Class="controlreg">
+      <Instance Name="cr6" Ord="6" />
+    </Register>
+    <Register Class="controlreg">
+      <Instance Name="cr7" Ord="7" />
+    </Register>
+    <Register Class="debugreg">
+      <Instance Name="dr0" Ord="0" />
+    </Register>
+    <Register Class="debugreg">
+      <Instance Name="dr1" Ord="1" />
+    </Register>
+    <Register Class="debugreg">
+      <Instance Name="dr2" Ord="2" />
+    </Register>
+    <Register Class="debugreg">
+      <Instance Name="dr3" Ord="3" />
+    </Register>
+    <Register Class="debugreg">
+      <Instance Name="dr4" Ord="4" />
+    </Register>
+    <Register Class="debugreg">
+      <Instance Name="dr5" Ord="5" />
+    </Register>
+    <Register Class="debugreg">
+      <Instance Name="dr6" Ord="6" />
+    </Register>
+    <Register Class="debugreg">
+      <Instance Name="dr7" Ord="7" />
+    </Register>
+    <Register Class="tracereg">
+      <Instance Name="tr0" Ord="0" />
+    </Register>
+    <Register Class="tracereg">
+      <Instance Name="tr1" Ord="1" />
+    </Register>
+    <Register Class="tracereg">
+      <Instance Name="tr2" Ord="2" />
+    </Register>
+    <Register Class="tracereg">
+      <Instance Name="tr3" Ord="3" />
+    </Register>
+    <Register Class="tracereg">
+      <Instance Name="tr4" Ord="4" />
+    </Register>
+    <Register Class="tracereg">
+      <Instance Name="tr5" Ord="5" />
+    </Register>
+    <Register Class="tracereg">
+      <Instance Name="tr6" Ord="6" />
+    </Register>
+    <Register Class="tracereg">
+      <Instance Name="tr7" Ord="7" />
+    </Register>
+    <DoubleReg Name="edx:eax"/>
+    <DoubleReg Name="ecx:eax"/>
+    <DoubleReg Name="edx:ecx"/>
+    <DoubleReg Name="ebx:esi" Class="pushed"/>
+    <DoubleReg Name="ebx:edi" Class="pushed"/>
+    <DoubleReg Name="edi:esi" Class="pushed"/>
+
+    <Address Name="eax" Class="rm" Coding="'addr32' *'mand' 'op' 1:2 'mod':3 6:3"/>
+    <Address Name="ebx" Class="rm" Coding="*'mand' 'op' 0:2 'mod1' + 'mod2' -1:3 6:3"/>
+
+    <Opcode Name="aaa" op="0x37">
+        <Operands Name="'rm:rm'" mod="4" mod1="1" mod2="2" mand="3"/>
+    </Opcode>
+    <Opcode Name="bbb" op="0x55">
+        <Operands Name="'rm:rm'" mod="7" mod1="0" mod2="0"/>
+    </Opcode>
+    <Prefix Name="a16" Coding="'addr16'"/>
+    <Prefix Name="a32" Coding="'addr32'"/>
+    <Prefix Name="lock" Coding="0xf0:8"/>
+    <Prefix Name="o16" Coding="'data16'"/>
+    <Prefix Name="o32" Coding="'data32'"/>
+    <Prefix Name="rep" Coding="0xf3:8"/>
+    <Prefix Name="repe" Coding="0xf3:8"/>
+    <Prefix Name="repne" Coding="0xf2:8"/>
+    <Prefix Name="repnz" Coding="0xf2:8"/>
+    <Prefix Name="repz" Coding="0xf3:8"/>
+  </Coding>
+	<Compiling Profile="bit32">
+		<General>
+			<Instance Name="GenStackAlign" Value="1"/>
+			<Instance Name="StandardNames" Value="1"/>
+			<Instance Name="compatibleint" Value="long"/>
+			<Instance Name="compatibleaddress" Value="long"/>
+			<Instance Name="defaultpacking" Value="8"/>
+			<Instance Name="optimize" Value="all" commandline="1"/>
+			<Instance Name="denyoptimize" Value="0"/>
+			<Instance Name="reversebits" Value="0"/>
+			<Instance Name="framesize" Value="8"/>
+			<Instance Name="minparamwidth" Value="4"/>
+			<Instance Name="minalignment" Value="4"/>
+		</General>
+		<Sizes>
+			<Instance Name="bool" size="1" align="1"/>
+			<Instance Name="char" size="1" align="1"/>
+			<Instance Name="short" size="2" align="2"/>
+			<Instance Name="int" size="4" align="4"/>
+			<Instance Name="long" size="4" align="4"/>
+			<Instance Name="longlong" size="8" align="8"/>
+			<Instance Name="address" size="4" align="4"/>
+			<Instance Name="faraddress" size="6" align="4"/>
+			<Instance Name="segment" size="2" align="2"/>
+			<Instance Name="float" size="4" align="4"/>
+			<Instance Name="double" size="8" align="8"/>
+			<Instance Name="longdouble" size="12" align="12"/>
+			<Instance Name="complexfloat" size="8" align="4"/>
+			<Instance Name="complexdouble" size="16" align="8"/>
+			<Instance Name="complexlongdouble" size="24" align="8"/>
+		</Sizes>
+		<Floating>
+			<Instance Name="float" min="-126" bias="126" max="128" mantissa_bits="24"/>
+			<Instance Name="double" min="-1022" bias="1022" max="1024" mantissa_bits="54"/>
+			<Instance Name="longdouble" min="-16382" bias="16382" max="16384" mantissa_bits="65"/>
+		</Floating>
+		<Assembler Profile="nasm">
+			<Usage>
+			</Usage>
+			<Params>
+				<Instance Name="hosted" Value="1"/>
+				<Instance Name="extension" Value=".asm"/>
+				<Instance Name="objextenstion" Value=".o"/>
+				<Instance Name="envname" Value="OCC"/>
+				<Instance Name="progname" Value="OCC"/>
+				<Instance Name="cfgname" Value="occ.cfg"/>
+				<Instance Name="debugger" profile=""/>
+			</Params>
+			<Arguments>
+			</Arguments>
+			<Defines>
+			</Defines>
+		</Assembler>
+	void (*internalConflict)(QUAD *q) ; /* enter a conflict for this instruction if necessary */
+    void (*align)(int size);            /* put an alignment command */
+    IMODE *(*handleIntrins)(EXPRESSION *node, int novalue);  /* backend handle intrinsic */
+		<Gen>
+			<Intrinsics>
+				<Instance Name="__LXMUL"/>
+				<Instance Name="__LXIDIV"/>
+				<Instance Name="__LXUDIV"/>
+				<Instance Name="__LXIMOD"/>
+				<Instance Name="__LXUMOD"/>
+			</Intrinsics>
+			<Code Name="line">
+			</Code>
+			<Code Name="passthrough">
+			</Code>
+			<Code Name="datapassthrough">
+			</Code>
+			<Code Name="label">
+			</Code>
+			<Code Name="goto">
+			</Code>
+			<Code Name="gosub">
+	call %op[0]%
+			</Code>
+			<Code Name="fargosub">
+			</Code>
+			<Code Name="trap">
+			</Code>
+			<Code Name="int">
+	int	%op[0]%
+			</Code>
+			<Code Name="ret">
+				<When Cond="opcount==0">
+	ret
+				</When>
+				<When Cond="opcount==1&amp;&amp;isscalar(op[0])">
+	ret	%op[0]%
+				</When>
+			</Code>
+			<Code Name="fret">
+				<When Cond="opcount==0">
+	retf
+				</When>
+				<When Cond="opcount==1&amp;&amp;isscalar(op[0])">
+	retf	%op[0]%
+				</When>
+			</Code>
+			<Code Name="rett">
+	iret
+			</Code>
+			<Code Class="math">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+						<When Cond="result==op[0]">
+	%op1% %result.low%,%op[1].low%
+	%op2% %result.high%,%op[1].high%
+						</When>
+						<When Cond="result==op[1]&amp;&amp;op[0]!=op[1]">
+	%op1% %result.low%,%op[0].low%
+	%op2% %result.high%,%op[0].high%
+						</When>
+						<Otherwise>
+	mov %result.low%,%op[0].low%
+	mov %result.high%,%op[0].high%
+	%op1% %result.low%,%op[1].low%
+	%op2% %result.high%,%op[1].high%
+						</Otherwise>
+					</When>
+					<Otherwise>
+	
+						<When Cond="result==op[0]">
+	%op1% %result%,%op[1]%
+						</When>
+						<When Cond="result==op[1]&amp;&amp;op[0]!=op[1]">
+	%op1% %result%,%op[0]%
+						</When>
+						<Otherwise>
+	mov %result%,%op[0]%
+	%op1% %result$,%op[1]%
+						</Otherwise>
+					</Otherwise>
+				</When>
+				<When Cond="isfloat(result)">
+					<When Cond="!istemp(op[0])">
+						<When Cond="op[0]==1.0">
+	fld1
+						</When>
+						<When Cond="op[0]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[0]%
+						</Otherwise>
+					</When>
+					<When Cond="!istemp(op[1])">
+						<When Cond="op[1]==1.0">
+	fld1
+						</When>
+						<When Cond="op[1]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[1]%
+						</Otherwise>
+					</When>
+					<When Cond="istemp(op[0]) &amp;&amp; op[0]==op[1]">
+	fld st0
+					</When>
+	%op2% st1
+					<When Cond="!istemp(result)">
+	fstp %result%
+					</When>
+				</When>
+			</Code>
+			<Code Name="add" op1="add" op2="adc" op3="faddp" Class="math"/>
+			<Code Name="sub" op1="sub" op2="sbb" op3="fsubp" Class="math">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+						<When Cond="result==op[0]">
+	%op1% %result.low%,%op[1].low%
+	%op2% %result.high%,%op[1].high%
+						</When>
+						<Otherwise>
+	mov %result.low%,%op[0].low%
+	mov %result.high%,%op[0].high%
+	%op1% %result.low%,%op[1].low%
+	%op2% %result.high%,%op[1].high%
+						</Otherwise>
+					</When>
+					<Otherwise>
+						<When Cond="result==op[0]">
+	%op1% %result%,%op[1]%
+						</When>
+						<When Cond="result==op[1]&amp;&amp;op[0]!=op[1]">
+	%op1% %result%,%op[0]%
+	neg	  %result%
+						</When>
+						<Otherwise>
+	mov %result%,%op[0]%
+	%op1% %result$,%op[1]%
+						</Otherwise>
+					</Otherwise>
+				</When>
+				<When Cond="isfloat(result)">
+					<When Cond="!istemp(op[0])">
+						<When Cond="op[0]==1.0">
+	fld1
+						</When>
+						<When Cond="op[0]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[0]%
+						</Otherwise>
+					</When>
+					<When Cond="!istemp(op[1])">
+						<When Cond="op[1]==1.0">
+	fld1
+						</When>
+						<When Cond="op[1]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[1]%
+						</Otherwise>
+					</When>
+					<When Cond="istemp(op[0]) &amp;&amp; op[0]==op[1]">
+	fld st0
+					</When>
+	%op2% st1
+					<When Cond="!istemp(result)">
+	fstp %result%
+					</When>
+				</When>
+			</Code>
+			<Code Name="udiv">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+	push %op[1].high%
+	push %op[1].low%
+	push %op[0].high%
+	push %op[0].low%
+	call __LXUDIV
+					</When>
+					<Otherwise>
+	div %op[1]%
+					</Otherwise>
+				</When>
+				<When Cond="isfloat(result)">
+					<When Cond="!istemp(op[0])">
+						<When Cond="op[0]==1.0">
+	fld1
+						</When>
+						<When Cond="op[0]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[0]%
+						</Otherwise>
+					</When>
+					<When Cond="!istemp(op[1])">
+						<When Cond="op[1]==1.0">
+	fld1
+						</When>
+						<When Cond="op[1]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[1]%
+						</Otherwise>
+					</When>
+					<When Cond="istemp(op[0]) &amp;&amp; op[0]==op[1]">
+	fld st0
+					</When>
+	fdivp st1
+					<When Cond="!istemp(result)">
+	fstp %result%
+					</When>
+				</When>
+				
+			</Code>
+			<Code Name="umod">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+	push %op[1].high%
+	push %op[1].low%
+	push %op[0].high%
+	push %op[0].low%
+	call __LXUMOD
+					</When>
+					<Otherwise>
+	div %op[1]%
+					</Otherwise>
+				</When>
+			</Code>
+			<Code Name="sdiv">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+	push %op[1].high%
+	push %op[1].low%
+	push %op[0].high%
+	push %op[0].low%
+	call __LXIDIV
+					</When>
+					<Otherwise>
+	idiv %op[1]%
+					</Otherwise>
+				</When>
+				<When Cond="isfloat(result)">
+					<When Cond="!istemp(op[0])">
+						<When Cond="op[0]==1.0">
+	fld1
+						</When>
+						<When Cond="op[0]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[0]%
+						</Otherwise>
+					</When>
+					<When Cond="!istemp(op[1])">
+						<When Cond="op[1]==1.0">
+	fld1
+						</When>
+						<When Cond="op[1]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[1]%
+						</Otherwise>
+					</When>
+					<When Cond="istemp(op[0]) &amp;&amp; op[0]==op[1]">
+	fld st0
+					</When>
+	fdivp st1
+					<When Cond="!istemp(result)">
+	fstp %result%
+					</When>
+				</When>
+			</Code>
+			<Code Name="smod">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+	push %op[1].high%
+	push %op[1].low%
+	push %op[0].high%
+	push %op[0].low%
+	call __LXIDIV
+					</When>
+					<Otherwise>
+	idiv %op[1]%
+					</Otherwise>
+				</When>
+			</Code>
+			<Code Name="mul">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+	push %op[1].high%
+	push %op[1].low%
+	push %op[0].high%
+	push %op[0].low%
+	call __LXMUL
+						<When Cond="%result.high%!=edx || %result.low%!=eax">
+	mov	%result.high%,edx
+	mov	%result.low%,eax
+						</When>
+					</When>
+					<Otherwise>
+						<When Cond="result==op[0]">
+	imul %result%,%op[1]%
+						</When>
+						<When Cond="result==op[1]&amp;&amp;op[0]!=op[1]">
+	mov %result%,%op[1]%
+	imul %result%,%op[0]%
+						</When>
+						<Otherwise>
+	mov %result%,%op[0]%
+	imul %result$,%op[1]%
+						</Otherwise>
+					</Otherwise>
+				</When>
+				<When Cond="isfloat(result)">
+					<When Cond="!istemp(op[0])">
+						<When Cond="op[0]==1.0">
+	fld1
+						</When>
+						<When Cond="op[0]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[0]%
+						</Otherwise>
+					</When>
+					<When Cond="!istemp(op[1])">
+						<When Cond="op[1]==1.0">
+	fld1
+						</When>
+						<When Cond="op[1]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[1]%
+						</Otherwise>
+					</When>
+					<When Cond="istemp(op[0]) &amp;&amp; op[0]==op[1]">
+	fld st0
+					</When>
+	fmulp st1
+					<When Cond="!istemp(result)">
+	fstp %result%
+					</When>
+				</When>
+			</Code>
+			<Code Name="lsl">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+						<When Cond="result!=op[0]">
+	mov %op[0].low%, %op[1].low%
+	mov %op[0].high%, %op[1].high%
+						</When>
+						<When Cond="isnumber(op[2])">
+							<When Cond="op[2]==32">
+	mov %op[0].high%, %op[0].low%
+	xor %op[0].low%, %op[0].low%
+							</When>
+							<When Cond="op[2] &lt; 32">
+	shld %op[0].high%, %op[1].low%, %op[2]
+	shl  %op1[1].low%, %op[2]%
+							</When>
+							<When Cond="op[2] > 32">
+	mov %op[0].high%, %op[0].low%
+	xor %op[0].low%, %op[0].low%
+	shl %op[0].high%, %op[2]%
+							</When>
+						</When>
+						<Otherwise>
+	shld %op[0].high%, %op[1].low%, %op[2]
+	shl  %op1[1].low%, %op[2]%
+						</Otherwise>
+					</When>
+					<Otherwise>
+						<When Cond="result!=op[0]">
+	mov %result%,%op[0]%
+						</When>
+	shl %result%,%op[2]%
+					</Otherwise>
+				</When>
+			</Code>
+			<Code Name="lsr">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+						<When Cond="result!=op[0]">
+	mov %op[0].low%, %op[1].low%
+	mov %op[0].high%, %op[1].high%
+						</When>
+						<When Cond="isnumber(op[2])">
+							<When Cond="op[2]==32">
+	mov %op[0].low%, %op[0].high%
+	xor %op[0].high%, %op[0].high%
+							</When>
+							<When Cond="op[2] &lt; 32">
+	shrd %op[0].low%, %op[1].high%, %op[2]
+	shr  %op1[1].high%, %op[2]%
+							</When>
+							<When Cond="op[2] > 32">
+	mov %op[0].low%, %op[0].high%
+	xor %op[0].high%, %op[0].high%
+	shr %op[0].low%, %op[2]%
+							</When>
+						</When>
+						<Otherwise>
+	shrd %op[0].low%, %op[1].high%, %op[2]
+	shr  %op1[1].high%, %op[2]%
+						</Otherwise>
+					</When>
+					<Otherwise>
+						<When Cond="result!=op[0]">
+	mov %result%,%op[0]%
+						</When>
+	shr %result%,%op[2]%
+					</Otherwise>
+				</When>
+			</Code>
+			<Code Name="asr">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+						<When Cond="result!=op[0]">
+	mov %op[0].low%, %op[1].low%
+	mov %op[0].high%, %op[1].high%
+						</When>
+						<When Cond="isnumber(op[2])">
+							<When Cond="op[2]==32">
+	mov %op[0].low%, %op[0].high%
+	sar %op[0].high%, %op[2]%
+							</When>
+							<When Cond="op[2] &lt; 32">
+	shrd %op[0].low%, %op[1].high%, %op[2]
+	sar  %op1[1].high%, %op[2]%
+							</When>
+							<When Cond="op[2] > 32">
+	mov %op[0].low%, %op[0].high%
+	sar %op[0].high%, 31
+	shr %op[0].low%, %op[2]%
+							</When>
+						</When>
+						<Otherwise>
+	shrd %op[0].low%, %op[1].high%, %op[2]
+	sar  %op1[1].high%, %op[2]%
+						</Otherwise>
+					</When>
+					<Otherwise>
+						<When Cond="result!=op[0]">
+	mov %result%,%op[0]%
+						</When>
+	sar %result%,%op[2]%
+					</Otherwise>
+				</When>
+			</Code>
+			<Code Name="neg">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+						<When Cond="result!=op[0]">
+	mov %op[0].low%, %op[1].low%
+	mov %op[0].high%, %op[1].high%
+						</When>
+	neg %op[0].high%
+	neg %op[0],low%
+	sbb %op[0].high%,0
+					</When>
+					<Otherwise>
+						<When Cond="result!=op[0]">
+	mov %op[0]%, %op[1]%
+						</When>
+	neg %op[0]%
+					</Otherwise>
+				</When>
+				<When Cond="result.size==float">
+					<When Cond="!istemp(op[1])">
+						<When Cond="op[1]==1.0">
+	fld1
+						</When>
+						<When Cond="op[1]==0.0">
+	fldz
+						</When>
+						<Otherwise>
+	fld %op[1]%
+						</Otherwise>
+	fchs
+					</When>
+				</When>
+				
+			</Code>
+			<Code Name="not">
+				<When Cond="isscalar(result)">
+					<When Cond="result.size==longlong">
+						<When Cond="result!=op[0]">
+	mov %op[0].low%, %op[1].low%
+	mov %op[0].high%, %op[1].high%
+						</When>
+	not %op[0].high%
+	not %op[0],low%
+					</When>
+					<Otherwise>
+						<When Cond="result!=op[0]">
+	mov %op[0]%, %op[1]%
+						</When>
+	not %op[0]%
+					</Otherwise>
+				</When>
+			</Code>
+			<Code Name="and" op1="and" op2="and" op3="" Class="math"/>
+			<Code Name="or" op1="or" op2="or" op3="" Class="math"/>
+			<Code Name="eor" op1="xor" op2="xor" op3="" Class="math"/>
+			<Code Class="compare">
+			</Code>
+			<Code Name="setne" Class="compare">
+	setn %op[0]%
+			</Code>
+			<Code Name="sete" Class="compare">
+	sete %op[0]%
+			</Code>
+			<Code Name="setc" Class="compare">
+	setc %op[0]%
+			</Code>
+			<Code Name="seta" Class="compare">
+	seta %op[0]%
+			</Code>
+			<Code Name="setnc" Class="compare">
+	setnc %op[0]%
+			</Code>
+			<Code Name="setbe" Class="compare">
+	setbe %op[0]%
+			</Code>
+			<Code Name="setl" Class="compare">
+	setl %op[0]%
+			</Code>
+			<Code Name="setg" Class="compare">
+	setg %op[0]%
+			</Code>
+			<Code Name="setle" Class="compare">
+	setel %op[0]%
+			</Code>
+			<Code Name="setge" Class="compare">
+			</Code>
+			<Code Name="assn">
+			</Code>
+			<Code Name="genword">
+			</Code>
+			<Code Name="coswitch">
+			</Code>
+			<Code Name="swbranch">
+			</Code>
+			<Code Name="dc">
+			</Code>
+			<Code Name="assnblock">
+			</Code>
+			<Code Name="clrblock">
+			</Code>
+			<Code Name="jc" Class="compare">
+	jc %label%
+			</Code>
+			<Code Name="ja" Class="compare">
+	ja %label%
+			</Code>
+			<Code Name="je" Class="compare">
+	je %label%
+			</Code>
+			<Code Name="jnc" Class="compare">
+	jnc %label%
+			</Code>
+			<Code Name="jbe" Class="compare">
+	jbe %label%
+			</Code>
+			<Code Name="jne" Class="compare">
+	jne %label%
+			</Code>
+			<Code Name="jl" Class="compare">
+	jl %label%
+			</Code>
+			<Code Name="jg" Class="compare">
+	jg %label%
+			</Code>
+			<Code Name="jle" Class="compare">
+	jle %label%
+			</Code>
+			<Code Name="jge" Class="compare">
+	jge %label%
+			</Code>
+			<Code Name="parm">
+			</Code>
+			<Code Name="parmadj">
+			</Code>
+			<Code Name="parmblock">
+			</Code>
+			<Code Name="cppini">
+			</Code>
+			<Code Name="prologue">
+			</Code>
+			<Code Name="epilogue">
+			</Code>
+			<Code Name="pushcontext">
+			</Code>
+			<Code Name="popcontext">
+			</Code>
+			<Code Name="loadcontext">
+			</Code>
+			<Code Name="unloadcontext">
+			</Code>
+			<Code Name="asm_tryblock">
+			</Code>
+			<Code Name="stackalloc">
+			</Code>
+			<Code Name="loadstack">
+			</Code>
+			<Code Name="savestack">
+			</Code>
+			<Code Name="blockstart">
+			</Code>
+			<Code Name="blockend">				
+			</Code>"
+		</Gen>
+		<PreColor>
+		</PreColor>
+		<Combine>
+		</Combine>
+		<Peep>
+		</Peep>
+	</Compiling>
+</ADL>
