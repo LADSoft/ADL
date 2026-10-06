@@ -1,6 +1,6 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
  *
@@ -20,10 +20,11 @@
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
  *
+ *
  */
 
 #include "UTF8.h"
-#include <ctype.h>
+#include <cctype>
 
 int UTF8::alpha[] = {
     0x000041, 0x000042, 0x000043, 0x000044, 0x000045, 0x000046, 0x000047, 0x000048, 0x000049, 0x00004a, 0x00004b, 0x00004c,
@@ -820,11 +821,19 @@ bool UTF8::IsAlnum(int n)
 }
 bool UTF8::IsAlpha(const char* str)
 {
+    if (str[0] < 0x7f)
+    {
+        return isalpha(str[0]);
+    }
     int n = Decode(str);
     return IsAlpha(n);
 }
 bool UTF8::IsAlnum(const char* str)
 {
+    if (str[0] < 0x7f)
+    {
+        return isalnum(str[0]);
+    }
     int n = Decode(str);
     return IsAlnum(n);
 }

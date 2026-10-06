@@ -1,6 +1,6 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
  *
@@ -20,11 +20,14 @@
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
  *
+ *
  */
+
 #ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
+#    define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "CmdSwitch.h"
+#include "CmdFiles.h"
 #include "Utils.h"
 #include <cctype>
 #include <fstream>
@@ -32,8 +35,26 @@
 #include <cstdlib>
 #include <cstring>
 
+#ifdef HAVE_UNISTD_H
+#    include <unistd.h>
+#    include <strings.h>
+#    define strnicmp strncasecmp
+#endif
+
+#ifdef __ORANGEC__
+#    ifndef __LSCRTL_DLL
+#        include <windows.h>
+#        include "../version.h"
+extern "C" void _RTL_FUNC __excepthook()
+{
+    printf("version: " STRING_VERSION "\n");
+    printf("Command Line: %s\n", GetCommandLineA());
+}
+#    endif
+#endif
+
 CmdSwitchBase::CmdSwitchBase(CmdSwitchParser& parser, char SwitchChar, std::deque<std::string> LongNames) :
-    exists(false), switchChar(SwitchChar), longNames(LongNames)
+    exists(false), switchChar(SwitchChar), longNames(std::move(LongNames))
 {
     parser += this;
 }
@@ -154,7 +175,7 @@ int CmdSwitchDefine::Parse(const char* data)
     {
         return -1;
     }
-    std::unique_ptr<define> newDefine = std::make_unique<define>();
+    std::unique_ptr<define> newDefine(new define());
     newDefine->name = name;
     if (*data == '=')
     {
@@ -166,7 +187,7 @@ int CmdSwitchDefine::Parse(const char* data)
         }
         if (*data)
             data++;
-        newDefine->value = name;
+        newDefine->value = std::move(name);
     }
     else
     {
@@ -186,13 +207,13 @@ int CmdSwitchFile::Parse(const char* data)
     int n = CmdSwitchString::Parse(data);
     if (n < 0 || argv)
         return n;
-    std::fstream in(CmdSwitchString::GetValue(), std::ios::in);
+    std::fstream in(CmdSwitchString::GetValue(), std::ios::in | std::ios::binary);
     if (!in.fail())
     {
         in.seekg(0, std::ios::end);
         size_t size = in.tellg();
         in.seekg(0, std::ios::beg);
-        std::unique_ptr<char[]> data1 = std::make_unique<char[]>(size + 1);
+        std::unique_ptr<char[]> data1(new char[size + 1]);
         memset(data1.get(), 0, size + 1);
         in.read(data1.get(), size);
         data1[size] = 0;
@@ -206,25 +227,28 @@ void CmdSwitchFile::Dispatch(char* data)
 {
     int max = 10;
     argc = 1;
-    argv = std::make_unique<char*[]>(max);
-    argv[0] = (char*)"";
+    argv = std::make_shared<char**>(new char*[max]);
+    (*argv)[0] = (char*)"";
     while (*data)
     {
         data = GetStr(data);
         if (argc == max)
         {
             max += 10;
-            std::unique_ptr<char*[]> p = std::move(argv);
-            argv = std::make_unique<char*[]>(max);
-            memcpy(argv.get(), p.get(), argc * sizeof(char*));
+            std::shared_ptr<char**> p = argv;
+            argv = std::make_shared<char**>(new char*[max]);
+            memcpy(*argv, *p, argc * sizeof(char*));
         }
     }
-    argv[argc] = 0;
-    Parser->Parse(&argc, argv.get());
+    (*argv)[argc] = 0;
+    files = std::make_shared<CmdFiles>();
+    Parser->Parse(&argc, *argv, files.get());
 }
 char* CmdSwitchFile::GetStr(char* data)
 {
-    char buf[10000], *p = buf;
+    static const int size = 30000 + 1;
+    auto buf = std::make_unique<char[]>(size);
+    char* p = buf.get();
     bool quote = false;
     while (isspace(*data))
         data++;
@@ -237,42 +261,34 @@ char* CmdSwitchFile::GetStr(char* data)
     *p = 0;
     if (quote && *data)
         data++;
-    while ((p = strstr(buf, "%")))
+    while ((p = (char*)strstr(buf.get(), "%")))
     {
-        char* q = strchr(p + 1, '%');
+        char* q = (char*)strchr(p + 1, '%');
         if (q)
         {
+            char name[1000];
             int len = q + 1 - p;
-            char* name = new char[len - 1];
             memcpy(name, p + 1, len - 2);
             name[len - 2] = 0;
             char* env = getenv(name);
-            delete[] name;
             if (env)
             {
                 int len2 = strlen(env);
-                if (len > len2)
-                {
-                    Utils::StrCpy(p + len2, sizeof(buf) - (p + len2 - buf), p + len);
-                }
-                else if (len < len2)
-                {
-                    memmove(p + len2, p + len, strlen(p + len) + 1);
-                }
+                memmove(p + len2, p + len, strlen(p + len) + 1);
                 memcpy(p, env, strlen(env));
             }
             else
             {
-                Utils::StrCpy(p, sizeof(buf) - (p - buf), q + 1);
+                Utils::StrCpy(p, size - (p - buf.get()), q + 1);
             }
         }
         else
             break;
     }
-    int len = strlen(buf) + 1;
+    int len = strlen(buf.get()) + 1;
     char* x = new char[len];
-    Utils::StrCpy(x, len, buf);
-    argv[argc++] = x;
+    Utils::StrCpy(x, len, buf.get());
+    (*argv)[argc++] = x;
     return data;
 }
 CmdSwitchBase* CmdSwitchParser::Find(const char* name, bool useLongName, bool toErr = true, bool longErr = false)
@@ -282,9 +298,11 @@ CmdSwitchBase* CmdSwitchParser::Find(const char* name, bool useLongName, bool to
     {
         std::string bigmatch = "";
         int max = strlen(name);
+        // const char* s = strchr(name, ',');
+        // if (!s)
         const char* s = strchr(name, '=');
         if (!s)
-            s = strchr(name, ',');
+            s = strchr(name, ':');
         if (s && s - name < max)
             max = s - name;
         for (auto s : switches)
@@ -296,7 +314,7 @@ CmdSwitchBase* CmdSwitchParser::Find(const char* name, bool useLongName, bool to
                     if (s1.size() == max)
                         return s;
                     else if (!bigmatch.size())
-                        bigmatch = s1;
+                        bigmatch = std::move(s1);
                 }
             }
         }
@@ -326,7 +344,7 @@ CmdSwitchBase* CmdSwitchParser::Find(const char* name, bool useLongName, bool to
     }
     return nullptr;
 }
-bool CmdSwitchParser::Parse(int* argc, char* argv[])
+bool CmdSwitchParser::Parse(int* argc, char* argv[], CmdFiles* files)
 {
     for (int i = 0, count = 0; *argv;)
     {
@@ -340,8 +358,12 @@ bool CmdSwitchParser::Parse(int* argc, char* argv[])
             memmove(argv, argv + 1, (*argc + 1 - i) * sizeof(char*));
             (*argc)--;
         }
-        else if ((argv[0][0] == '-' || argv[0][0] == '/' || (argv[0][0] == '+' && argv[0][1] != '-')) && argv[0][1] &&
-                 (argv[0][1] != '-' || argv[0][2]))
+        else if ((argv[0][0] == '-' ||
+#ifdef TARGET_OS_WINDOWS
+                  argv[0][0] == '/' ||
+#endif
+                  (argv[0][0] == '+' && argv[0][1] != '-')) &&
+                 argv[0][1] && (argv[0][1] != '-' || argv[0][2]))
         {
             const char* swtch = &argv[0][0];
             const char* data = &argv[0][0];
@@ -356,9 +378,11 @@ bool CmdSwitchParser::Parse(int* argc, char* argv[])
                 if (longName)
                 {
                     b = Find(data, true);
+                    // const char* p = strchr(data, ',');
+                    // if (!p)
                     const char* p = strchr(data, '=');
                     if (!p)
-                        p = strchr(data, ',');
+                        p = strchr(data, ':');
                     if (p)
                         data = p + 1;
                     else
@@ -414,6 +438,7 @@ bool CmdSwitchParser::Parse(int* argc, char* argv[])
                         n = 0;
                     }
                 }
+                AddCurrent(b);
                 if (n < 0)
                     return false;
                 data += n;
@@ -424,6 +449,11 @@ bool CmdSwitchParser::Parse(int* argc, char* argv[])
         }
         else
         {
+            if (files && argv[0][0] != '\0')
+            {
+                std::string aa = argv[0];
+                files->Add(aa, GetCurrent());
+            }
             ++argv;
             ++i;
         }
@@ -457,7 +487,7 @@ void CmdSwitchParser::ScanEnv(char* output, size_t len, const char* string)
     *output = 0;
 }
 
-bool CmdSwitchParser::Parse(const std::string& val, int* argc, char* argv[])
+bool CmdSwitchParser::Parse(const std::string& val, int* argc, char* argv[], CmdFiles* files)
 {
     char output[1024], *string = output;
     if (val.size() == 0)
@@ -484,5 +514,5 @@ bool CmdSwitchParser::Parse(const std::string& val, int* argc, char* argv[])
         string++;
     }
     argv[*argc] = nullptr;
-    return Parse(argc, argv);
+    return Parse(argc, argv, files);
 }

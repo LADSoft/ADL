@@ -2,7 +2,7 @@
 #
 
 CC=cl.exe
-CCFLAGS = /O2 /EHs /c /nologo /Dx64 /I/adl/src/util /I/adl/src/sass /I/adl/src/sass/generated
+CCFLAGS = /O2 /EHs /c /nologo /Dx64 /I/adl/src/util /I/adl/src/sass /I/adl/src/sass/generated /DTARGET_OS_WINDOWS
 
 LINK=link.exe
 LFLAGS=/LTCG:incremental /nologo /NXCOMPAT /DYNAMICBASE /MACHINE:x86 /OPT:REF /SAFESEH  /OPT:ICF /TLBID:1
@@ -18,6 +18,7 @@ EXE_dependencies = \
 		CmdSwitch.obj \
 		CmdFiles.obj \
 		Utils.obj \
+                ToolChain.obj \
 		AdlFunctions.obj \
 		x64Instructions.obj \
 		x64Parser.obj \

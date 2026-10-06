@@ -1,6 +1,6 @@
 /* Software License Agreement
  * 
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  * 
  *     This file is part of the Orange C Compiler package.
  * 
@@ -20,10 +20,12 @@
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
  * 
+ * 
  */
 
 #include "CmdSwitch.h"
 #include "Utils.h"
+#include "ToolChain.h"
 #include "XML.h"
 #include "ADLMain.h"
 #include "Loader.h"
@@ -40,22 +42,24 @@ CmdSwitchParser ADLMain::SwitchParser;
 CmdSwitchBool ADLMain::DumpDB(SwitchParser, 'd');
 
 int main(int argc, char **argv)
+MAINTRY
 {
     ADLMain Main;
     return Main.Run(argc, argv);
 }
+MAINCATCH
 ADLMain::~ADLMain()
 {
 }
 int ADLMain::Run(int argc, char **argv)
 {
-    Utils::banner(argv[0]);
+    ToolChain::ShowBanner();
     if (!SwitchParser.Parse(&argc, argv))
     {
-        Utils::usage(argv[0], usageText);
+        ToolChain::Usage(usageText);
     }
     if (argc !=2)
-        Utils::usage(argv[0], usageText);
+        ToolChain::Usage(usageText);
     std::string name = argv[1];
     if (name.find_first_of(".") == std::string::npos)
         name += ".adl";
@@ -67,7 +71,7 @@ int ADLMain::Run(int argc, char **argv)
         node.SetStripSpaces(false);
         if (!node.Read(in))
         {
-            Utils::fatal("Invalid file format in line %d", node.Line());
+            Utils::Fatal("Invalid file format in line %d", node.Line());
         }
         else
         {
@@ -90,13 +94,13 @@ int ADLMain::Run(int argc, char **argv)
             }
             else
             {
-                Utils::fatal("Expected ADL file");
+                Utils::Fatal("Expected ADL file");
             }
         }
     }
     else
     {
-        Utils::fatal("Cannot open file '%s' for read", argv[1]);
+        Utils::Fatal("Cannot open file '%s' for read", argv[1]);
     }
     return 0;
 }

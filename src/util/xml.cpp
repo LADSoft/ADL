@@ -1,6 +1,6 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
  *
@@ -19,6 +19,7 @@
  *
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
+ *
  *
  */
 
@@ -223,7 +224,7 @@ bool xmlNode::Read(std::fstream& stream, char v)
         if (isalpha(t) || t == '_')
         {
             stream.putback(t);
-            auto attrib = std::make_unique<xmlAttrib>();
+            std::unique_ptr<xmlAttrib> attrib(new xmlAttrib());
             // if (!attrib)
             //    return false;
             if (!attrib->Read(stream))
@@ -328,7 +329,7 @@ bool xmlNode::Read(std::fstream& stream, char v)
                 }
                 else
                 {
-                    auto node = std::make_unique<xmlNode>();
+                    std::unique_ptr<xmlNode> node(new xmlNode());
                     // if (!node)
                     //    return false;
                     if (!node->Read(stream, t))
@@ -445,7 +446,7 @@ void xmlNode::RemoveAttrib(const xmlAttrib* attrib)
     {
         if ((*it).get() == attrib)
         {
-            attribs.erase(it);
+            it = attribs.erase(it);
         }
     }
 }
@@ -455,7 +456,7 @@ void xmlNode::RemoveChild(const xmlNode* child)
     {
         if ((*it).get() == child)
         {
-            children.erase(it);
+            it = children.erase(it);
         }
     }
 }

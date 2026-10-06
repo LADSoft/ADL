@@ -30,7 +30,7 @@
 #include <iomanip>
 #include "Utils.h"
 #include <vector>
-
+#include "ToolChain.h"
 CmdSwitchParser Sass::SwitchParser;
 CmdSwitchFile Sass::File(SwitchParser, '@');
 CmdSwitchInt Sass::ProcessorMode(SwitchParser, 's', 32, 0, 100, {"processor-mode"});
@@ -291,16 +291,16 @@ void Sass::WriteFile(std::ostream& output)
 int Sass::Run(int argc, char **argv)
 {
     int rv = 0;
-    Utils::banner(argv[0]);
+    ToolChain::ShowBanner();
     Utils::SetEnvironmentToPathParent("ORANGEC");
     CmdSwitchFile internalConfig(SwitchParser);
     if (!SwitchParser.Parse(&argc, argv) ||  argc != 1)
     {
-        Utils::usage(argv[0], usageText);
+        ToolChain::Usage(usageText,1);
     }
     auto ip = InstructionParser::GetInstance();
     if (!InstructionParser::SetProcessorMode(ProcessorMode.GetValue()))
-        Utils::fatal("Invalid processor mode");
+        Utils::Fatal("Invalid processor mode");
     ip->Setup(nullptr);
     try
     {

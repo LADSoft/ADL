@@ -5,3 +5,6 @@ Build instructions:
 	after that run build.bat.  It will compile the programs then create the distribution archives in \orc\dist.
 
 	if you are compiling via the IDE please compile and run ADL.EXE first; the IDE debug settings are set up to use it to generate files that are used when compiling SASS.EXE.
+
+	to test run 'sass.exe < test.s > test.txt' then you can view test.txt to see the compiled bytes
+

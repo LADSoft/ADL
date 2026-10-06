@@ -1,6 +1,6 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
  *
@@ -20,11 +20,12 @@
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
  *
+ *
  */
 
 #include "UTF8.h"
-#include <ctype.h>
-#include <string.h>
+#include <cctype>
+#include <cstring>
 int UTF8::Decode(const char* str)
 {
     if ((*str & 0x80) == 0)

@@ -1,6 +1,6 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
  *
@@ -19,6 +19,7 @@
  *
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
+ *
  *
  */
 
@@ -42,11 +43,11 @@ class SharedMemory
     void SetName();
     std::string name_;
 
-    unsigned max_;
-    unsigned windowSize_;
+    const unsigned max_;
+    const unsigned windowSize_;
     unsigned current_;
     void* fileHandle_;
-    unsigned regionBase_;
-    void* regionHandle;
-    unsigned char* regionStart;
+    void* memHandle_;            // result of virtualAlloc
+    void* regionHandle;          // result of OpenFileMapping/CreateFileMapping
+    unsigned char* regionStart;  // result of MapViewOfFile(regionHandle,regionBase_,windowSize_)
 };

@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="adl/adl.vcxproj" Id="4a3aaba9-ab7a-4ea6-a839-d1c2bd461a1a" />
+  <Project Path="sass/Sass.vcxproj" Id="40064d39-d689-4136-b590-53a96a98079e" />
+</Solution>

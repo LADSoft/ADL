@@ -1,6 +1,6 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
  *
@@ -20,12 +20,13 @@
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
  *
+ *
  */
 
 #include <string.h>
 #include <ctype.h>
 
-#ifndef HAVE_UNISTD_H
+#ifdef TARGET_OS_WINDOWS
 #    include <windows.h>
 #endif
 #include <stdlib.h>
@@ -34,9 +35,7 @@
 // when it is used...
 int winsystem(char* cmd)
 {
-#ifdef HAVE_UNISTD_H
-    return system(cmd);
-#else
+#ifdef TARGET_OS_WINDOWS
     STARTUPINFO stStartInfo;
     PROCESS_INFORMATION stProcessInfo;
     BOOL bRet;
@@ -61,5 +60,7 @@ int winsystem(char* cmd)
     CloseHandle(stProcessInfo.hProcess);
     CloseHandle(stProcessInfo.hThread);
     return rv;
+#else
+    return system(cmd);
 #endif
 }

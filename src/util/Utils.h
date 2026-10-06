@@ -1,6 +1,6 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
  *
@@ -20,88 +20,78 @@
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
  *
+ *
  */
 
 #ifndef UTIL_H
 #define UTIL_H
 #ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
+#    define _CRT_SECURE_NO_WARNINGS
 #endif
 #include <string>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 
-#ifdef _WIN32
+#ifdef TARGET_OS_WINDOWS
 #    include "io.h"
-#    define mysystem(x) winsystem(x)
-extern "C" int winsystem(const char*);
-#else
-#    define mysystem(x) system(x)
 #endif
+#include <sys/stat.h>
+
+#define MAINTRY try
+#define MAINCATCH                                \
+    catch (std::exception & e)                   \
+    {                                            \
+        printf("Fatal: caught: %s\n", e.what()); \
+        return 3;                                \
+    }                                            \
+    catch (...)                                  \
+    {                                            \
+        printf("Fatal: caught something...");    \
+        return 3;                                \
+    }
 
 class Utils
 {
   public:
-    static void banner(const char* progName);
-    static void usage(const char* progName, const char* text);
-    [[noreturn]] static void fatal(const char* format)
+    [[noreturn]] static void Fatal(const char* format)
     {
         fprintf(stderr, "Fatal error: ");
         fputs(format, stderr);
+        fflush(stderr);
         if (cleanup)
             cleanup();
         exit(1);
     }
     template <typename... Args>  // templates are MUCH more portable than varargs
-    [[noreturn]] static void fatal(const char* format, Args... arg)
+    [[noreturn]] static void Fatal(const char* format, Args... arg)
     {
         fprintf(stderr, "Fatal error: ");
         fprintf(stderr, format, arg...);
         fputc('\n', stderr);
+        fflush(stderr);
         if (cleanup)
             cleanup();
         exit(1);
     }
-    [[noreturn]] static void fatal(const std::string& format) { fatal(format.c_str()); }
+    [[noreturn]] static void Fatal(const std::string& format) { Fatal(format.c_str()); }
     template <typename... Args>
-    [[noreturn]] static void fatal(const std::string& format, Args... arg)
+    [[noreturn]] static void Fatal(const std::string& format, Args... arg)
     {
-        fatal(format.c_str(), arg...);
+        Fatal(format.c_str(), arg...);
     }
     static bool HasLocalExe(const std::string& exeName);
-    template <typename... Args>
-    static int ToolInvoke(const std::string& exeName, const char* with, const char* fmt, const Args... arg)
+    static size_t file_size(const std::string& file)
     {
-        char buf[10000];
-        memset(buf, 0, sizeof(buf));
-        buf[0] = '"';
-        strcpy(buf + 1, GetModuleName());
-        char* p = strrchr(buf, '/');
-        char* p1 = strrchr(buf, '\\');
-        if (p1 > p)
-            p = p1;
-        else if (!p)
-            p = p1;
-        if (p)
+        struct stat stats;
+        if (!stat(file.c_str(), &stats))
         {
-            p++;
+            return stats.st_size;
         }
         else
         {
-            p = buf + 1;
+            return 0;
         }
-        *p = 0;
-        strcat(p, exeName.c_str());
-        strcat(p, "\" ");
-        sprintf(buf + strlen(buf), fmt, arg...);
-        if (with)
-        {
-            printf("%s\n", buf);
-            if (with[0])
-                printf("   with %s", with);
-        }
-        return mysystem(buf);
     }
     static void SetCleanup(void(Cleanup)()) { cleanup = Cleanup; }
     static char* GetModuleName();
@@ -122,10 +112,17 @@ class Utils
     static void StripExt(char* buffer);
     static bool HasExt(const char* buffer, const char* ext);
     static bool FileExists(const char* buffer);
+    static bool FileExists(const std::string& buffer) { return FileExists(buffer.c_str()); }
     static std::string FindOnPath(const std::string& name, const std::string& path);
-    static std::vector<std::string> split(std::string strToSplit, char delimeter = ';');
+    static std::vector<std::string> split(const std::string& strToSplit, char delimeter = ';');
     static void ReplaceAll(std::string& str, const std::string& from, const std::string& to);
-
+    static std::string ConvertWStringToString(std::wstring str)
+    {
+        char intStr[256];
+        size_t sz = wcstombs(nullptr, str.c_str(), 256);
+        sz = wcstombs(intStr, str.c_str(), sz);
+        return std::string(intStr, sz);
+    }
     static bool NamedPipe(int* fds, const std::string& name);
     static bool PipeWrite(int fileno, const std::string& data);
     static std::string PipeRead(int fileno);
@@ -135,25 +132,32 @@ class Utils
 
     static unsigned Random(unsigned);
 
-    static char* StrCpy(char* data, size_t len, const char* source)
+    static char* StrCpy(char* data, int len, const char* source)
     {
-        strncpy(data, source, len);
-        data[len - 1] = '\0';
+        if (len <= 0)
+            return data;
+        int n = strlen(source);
+        if (n > len - 1)
+            n = len - 1;
+        memcpy(data, source, n);
+        data[n] = '\0';
         return data;
     }
-    template <size_t len>
+    template <int len>
     static char* StrCpy(char (&data)[len], const char* source)
     {
         return StrCpy(data, len, source);
     }
-    static char* StrCat(char* data, size_t len, const char* source)
+    static char* StrCat(char* data, int len, const char* source)
     {
+        if (len <= 0)
+            return data;
         int num = (int)len - (int)strlen(data) - 1;
         if (num > 0)
             strncat(data, source, num);
         return data;
     }
-    template <size_t len>
+    template <int len>
     static char* StrCat(char (&data)[len], const char* source)
     {
         return StrCat(data, len, source);
@@ -171,8 +175,6 @@ class Utils
     static unsigned crctab[256];
 
   private:
-    static int ScreenHeight();
-    static bool GetLine(const char** text, std::string& buf);
     static void (*cleanup)();
 };
 #endif

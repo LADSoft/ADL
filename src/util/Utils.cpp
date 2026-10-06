@@ -1,34 +1,42 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2025 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
+ *
  *
  *     The Orange C Compiler package is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
  *
+ *
  *     The Orange C Compiler package is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
  *
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with Orange C.  If not, see <http://www.gnu.org/licenses/>.
+ *
  *
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
  *
+ *
+ *
+ *
  */
+
 #ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
+#    define _CRT_SECURE_NO_WARNINGS
 #endif
 #include <cstdio>
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
-#ifdef _WIN32
+#ifdef TARGET_OS_WINDOWS
 #    include <windows.h>
 #endif
 #ifdef HAVE_UNISTD_H
@@ -36,6 +44,7 @@
 #    define _access access
 #    define _isatty isatty
 #    include <sys/ioctl.h>
+#    include <wordexp.h>
 #else
 #    include <io.h>
 extern "C" char* getcwd(char*, int);
@@ -57,126 +66,28 @@ char* Utils::ShortName(const char* v)
 {
     static char prog_name[260], *short_name, *extension;
     StrCpy(prog_name, v);
-    short_name = strrchr(prog_name, '\\');
+    short_name = (char*)strrchr(prog_name, '\\');
     if (short_name == nullptr)
-        short_name = strrchr(prog_name, '/');
+        short_name = (char*)strrchr(prog_name, '/');
     if (short_name == nullptr)
-        short_name = strrchr(prog_name, ':');
+        short_name = (char*)strrchr(prog_name, ':');
     if (short_name)
         short_name++;
     else
         short_name = prog_name;
 
-    extension = strrchr(short_name, '.');
+    extension = (char*)strrchr(short_name, '.');
     if (extension != nullptr)
         *extension = '\0';
     return short_name;
 }
-void Utils::banner(const char* progName)
-{
-    bool have_version = false;
-    // no banner if they specify -!, this is also caught in the cmd switch module
-    // so it is transparent to the proggy
-#ifndef HAVE_UNISTD_H
-    // handle /V switch
-    for (int i = 1; i < __argc && __argv[i]; i++)
-        if (__argv[i] && (__argv[i][0] == '/' || __argv[i][0] == '-'))
-            if ((__argv[i][1] == 'V' && __argv[i][2] == 0) || !strcmp(__argv[i], "--version"))
-            {
-                have_version = true;
-            }
-    if (!have_version)
-        for (int i = 1; i < __argc && __argv[i]; i++)
-            if (__argv[i] && (__argv[i][0] == '/' || __argv[i][0] == '-'))
-            {
-                if (__argv[i][1] == '!' || !strcmp(__argv[i], "--nologo"))
-                {
-                    return;
-                }
-                else if (!strncmp(&__argv[i][1], "print", 5) || !strncmp(&__argv[i][1], "dump", 4))
-                {
-                    return;
-                }
-                else if (!strncmp(&__argv[i][1], "-print", 6) || !strncmp(&__argv[i][1], "-dump", 5))
-                {
-                    return;
-                }
-            }
-#endif
-    printf("%s (OrangeC) Version " STRING_VERSION "\n" COPYRIGHT "\n", ShortName(progName));
-    if (have_version)
-    {
-        printf("\nCompile date: " __DATE__ " time: " __TIME__ "\n");
-        exit(0);
-    }
-}
-int Utils::ScreenHeight()
-{
-#ifdef _WIN32
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    return csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-#else
-    struct winsize max;
-    ioctl(0, TIOCGWINSZ, &max);
-    return max.ws_row;
-#endif
-}
-bool Utils::GetLine(const char** text, std::string& buf)
-{
-    if (!**text)
-        return false;
-    char const* start = *text;
-    auto temp = strchr(*text, '\n');
-    if (!temp)
-    {
-        *text += strlen(*text);
-    }
-    else
-    {
-        *text = temp + 1;
-    }
-    buf = std::string(start, *text);
-    return true;
-}
-void Utils::usage(const char* prog_name, const char* text)
-{
-
-    int rows = 10000;
-#ifdef _WIN32
-    if (_isatty(fileno(stderr)))
-        rows = ScreenHeight();
-#else
-    if (_isatty(STDERR_FILENO))
-        rows = ScreenHeight();
-#endif
-    fprintf(stderr, "\nUsage: %s ", ShortName(prog_name));
-    int left = rows - 4;
-    std::string buf;
-    while (GetLine(&text, buf))
-    {
-        std::cerr << buf;
-        if (--left == 0)
-        {
-            fprintf(stderr, "Press <ENTER> to continue...");
-            char temp[512];
-            fgets(temp, sizeof(temp), stdin);
-            left = rows - 1;
-        }
-    }
-    exit(1);
-}
 char* Utils::GetModuleName()
 {
     static char buf[256];
-#if defined(_WIN32)
+#ifdef TARGET_OS_WINDOWS
     GetModuleFileNameA(nullptr, buf, sizeof(buf));
 #else
-#    ifdef HAVE_UNISTD_H
     StrCpy(buf, "unknown");
-#    else
-    StrCpy(buf, __argv[0]);
-#    endif
 #endif
     return buf;
 }
@@ -186,11 +97,11 @@ void Utils::SetEnvironmentToPathParent(const char* name)
     {
         char buf[512];
         StrCpy(buf, GetModuleName());
-        char* p = strrchr(buf, '\\');
+        char* p = (char*)strrchr(buf, '\\');
         if (p)
         {
             *p = 0;
-            p = strrchr(buf, '\\');
+            p = (char*)strrchr(buf, '\\');
             if (p)
             {
                 *p = 0;
@@ -231,7 +142,7 @@ std::string Utils::FullPath(const std::string& path, const std::string& name)
 std::string Utils::AbsolutePath(const std::string& name)
 {
     std::string rv = name;
-#if defined(WIN32)
+#ifdef TARGET_OS_WINDOWS
     if (name.size() >= 3 && (name[1] != ':' || name[2] != CmdFiles::DIR_SEP[0]))
     {
         char buf[MAX_PATH];
@@ -250,8 +161,8 @@ std::string Utils::QualifiedFile(const char* path, const char* ext)
 {
     char buf[260];
     Utils::StrCpy(buf, path);
-    char* p = strrchr(buf, '.');
-    if (!p || (p != buf && p[-1] == '.') || p[1] == '\\')
+    char* p = (char*)strrchr(buf, '.');
+    if (!p || (p != buf && p[-1] == '.') || strchr(p, '\\') || strchr(p, '/'))
         p = buf + strlen(buf);
     Utils::StrCpy(p, sizeof(buf) - (p - buf), ext);
     return std::string(buf);
@@ -267,7 +178,8 @@ char* Utils::FullQualify(char* string)
     }
     else if (string[1] != ':')
     {
-        char *p, *q = string;
+        char* p;
+        const char* q = string;
         getcwd(buf, 265);
         p = buf + strlen(buf);
         if (!strncmp(q, ".\\", 2))
@@ -311,7 +223,7 @@ std::string Utils::SearchForFile(const std::string& path, const std::string& nam
             current = fpath.substr(0, npos);
             fpath.erase(0, npos + 1);
         }
-        if (current[current.size()] != CmdFiles::DIR_SEP[0])
+        if (current[current.size() - 1] != CmdFiles::DIR_SEP[0])
         {
             current += CmdFiles::DIR_SEP;
         }
@@ -329,8 +241,8 @@ bool Utils::HasLocalExe(const std::string& exeName)
 {
     char buf[10000];
     strcpy(buf, GetModuleName());
-    char* p = strrchr(buf, '/');
-    char* p1 = strrchr(buf, '\\');
+    char* p = (char*)strrchr(buf, '/');
+    char* p1 = (char*)strrchr(buf, '\\');
     if (p1 > p)
         p = p1;
     else if (!p)
@@ -381,6 +293,7 @@ bool Utils::iequal(const std::string& a, const std::string& b, int sz)
 FILE* Utils::TempName(std::string& name)
 {
     char tempFile[260];
+    tempFile[0] = 0;
     tmpnam(tempFile);
     if (tempFile[0] == '\\')
     {
@@ -396,10 +309,19 @@ FILE* Utils::TempName(std::string& name)
     {
         StrCpy(tempFile, ".\\");
         tmpnam(tempFile + strlen(tempFile));
+        // this next because it apparently isn't standard how to do the return value of tmpnam
+        const char* p = strrchr(tempFile, '\\');
+
+        // well p can never be null based on the previos definitions but...
+        if (p)
+        {
+            StrCpy(tempFile + 2, strlen(tempFile) - 2, p);
+        }
+
         fil = fopen(tempFile, "w");
         if (!fil)
         {
-            Utils::fatal("TMP environment variable not set or invalid");
+            Utils::Fatal("TMP environment variable not set or invalid");
         }
     }
     name = tempFile;
@@ -411,8 +333,8 @@ FILE* Utils::TempName(std::string& name)
  */
 void Utils::AddExt(char* buffer, const char* ext)
 {
-    char* pos = strrchr(buffer, '.');
-    if (!pos || (*(pos - 1) == '.') || (*(pos + 1) == '\\'))
+    char* pos = (char*)strrchr(buffer, '.');
+    if (!pos || strcmp(pos, ext) != 0)
         strcat(buffer, ext);
 }
 
@@ -421,7 +343,7 @@ void Utils::AddExt(char* buffer, const char* ext)
  */
 void Utils::StripExt(char* buffer)
 {
-    char* pos = strrchr(buffer, '.');
+    char* pos = (char*)strrchr(buffer, '.');
     if (pos && (*(pos - 1) != '.'))
         *pos = 0;
 }
@@ -438,13 +360,13 @@ bool Utils::HasExt(const char* buffer, const char* ext)
 
 bool Utils::FileExists(const char* buffer)
 {
-#ifdef _WIN32
+#ifdef TARGET_OS_WINDOWS
     return !(GetFileAttributesA(buffer) & FILE_ATTRIBUTE_DIRECTORY);
 #else
     return access(buffer, 4) == 0;
 #endif
 }
-std::vector<std::string> Utils::split(std::string strToSplit, char delimeter)
+std::vector<std::string> Utils::split(const std::string& strToSplit, char delimeter)
 {
     std::stringstream ss(strToSplit);
     std::string item;

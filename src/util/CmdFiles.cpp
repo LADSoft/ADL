@@ -1,6 +1,6 @@
 /* Software License Agreement
  *
- *     Copyright(C) 1994-2022 David Lindauer, (LADSoft)
+ *     Copyright(C) 1994-2026 David Lindauer, (LADSoft)
  *
  *     This file is part of the Orange C Compiler package.
  *
@@ -20,18 +20,30 @@
  *     contact information:
  *         email: TouchStone222@runbox.com <David Lindauer>
  *
+ *
  */
-
-#ifndef HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
+#    include <unistd.h>
+#    include <glob.h>
+#    include <string.h>
+#    define _access access
+#else
 #    include <io.h>
 #endif
 
 #include "CmdFiles.h"
+#include "CmdSwitch.h"
+// #include <filesystem>
 using namespace std;  // borland puts the io stuff in the std namespace...
                       // microsoft does not seem to.
 
+#ifdef TARGET_OS_WINDOWS
 const char* CmdFiles::DIR_SEP = "\\";
 const char* CmdFiles::PATH_SEP = ";";
+#else
+const char* CmdFiles::DIR_SEP = "/";
+const char* CmdFiles::PATH_SEP = ":";
+#endif
 
 CmdFiles::~CmdFiles() {}
 bool CmdFiles::Add(char** array, bool recurseDirs)
@@ -43,16 +55,24 @@ bool CmdFiles::Add(char** array, bool recurseDirs)
     }
     return true;
 }
+bool CmdFiles::Add(std::string& name, const std::map<int, std::shared_ptr<CmdSwitchBase>>& switches)
+{
+    int index = names.size();
+    Add(name, false);
+    for (; index < names.size(); ++index)
+        names[index].activeSwitches = switches;
+    return true;
+}
 bool CmdFiles::RecurseDirs(const std::string& path, const std::string& name, bool recurseDirs)
 {
     bool rv = false;
-#ifndef HAVE_UNISTD_H
+#ifdef TARGET_OS_WINDOWS
     struct _finddata_t find;
 #endif
     std::string q = path + "*.*";
     size_t handle;
     // borland does not define the char * as const...
-#ifndef HAVE_UNISTD_H
+#ifdef TARGET_OS_WINDOWS
     if ((handle = _findfirst(const_cast<char*>(q.c_str()), &find)) != -1)
     {
         do
@@ -68,13 +88,22 @@ bool CmdFiles::RecurseDirs(const std::string& path, const std::string& name, boo
         } while (_findnext(handle, &find) != -1);
         _findclose(handle);
     }
+#else
+    glob_t glob_fils;
+    memset(&glob_fils, 0, sizeof(glob_fils));
+    int retval = glob(q.c_str(), GLOB_NOSORT | GLOB_TILDE | GLOB_ONLYDIR, NULL, &glob_fils);
+    for (size_t i = 0; i < glob_fils.gl_pathc; i++)
+    {
+        rv |= Add(std::string(glob_fils.gl_pathv[i]) + DIR_SEP + name, recurseDirs);
+    }
+    globfree(&glob_fils);
 #endif
     return rv;
 }
-bool CmdFiles::Add(const std::string& name, bool recurseDirs)
+bool CmdFiles::Add(const std::string& name, bool recurseDirs, bool subdirs)
 {
     bool rv = false;
-#ifndef HAVE_UNISTD_H
+#ifdef TARGET_OS_WINDOWS
     struct _finddata_t find;
 #endif
     std::string path, lname;
@@ -104,22 +133,42 @@ bool CmdFiles::Add(const std::string& name, bool recurseDirs)
     }
     size_t handle;
     // borland does not define the char * as const...
-#ifndef HAVE_UNISTD_H
+#ifdef TARGET_OS_WINDOWS
     if ((handle = _findfirst(const_cast<char*>(name.c_str()), &find)) != -1)
     {
         do
         {
-            if (!(find.attrib & _A_SUBDIR) && /*!(find.attrib & _A_VOLID) && */
+            if ((!(find.attrib & _A_SUBDIR) || subdirs) && /*!(find.attrib & _A_VOLID) && */
                 !(find.attrib & _A_HIDDEN))
             {
-                std::string file(path + std::string(find.name));
-                names.push_back(file);
-                rv = true;
+                if (strcmp(find.name, ".") != 0 && strcmp(find.name, "..") != 0)
+                {
+                    std::string file(path + std::string(find.name));
+                    names.push_back(std::move(FileEntry(std::move(file))));
+                    rv = true;
+                }
             }
         } while (_findnext(handle, &find) != -1);
         _findclose(handle);
     }
+#else
+    glob_t glob_fils;
+    memset(&glob_fils, 0, sizeof(glob_fils));
+    // sorting on this is being disabled so we don't call qsort when someone doesn't ask.
+    // I don't know if this matters to anyone -- chugga_fan
+    int retval = glob(name.c_str(), GLOB_NOSORT | GLOB_TILDE | GLOB_MARK, NULL, &glob_fils);
+    for (size_t i = 0; i < glob_fils.gl_pathc; i++)
+    {
+        std::string possible = std::string(glob_fils.gl_pathv[i]);
+        if (possible[possible.size() - 1] != '/')
+        {
+            names.push_back(std::move(FileEntry(possible)));
+            rv = true;
+        }
+    }
+    globfree(&glob_fils);
 #endif
+
     if (recurseDirs)
     {
         rv |= RecurseDirs(path, lname, recurseDirs);
@@ -128,7 +177,7 @@ bool CmdFiles::Add(const std::string& name, bool recurseDirs)
     {
         if (name.find_first_of('*') == std::string::npos && name.find_first_of('?') == std::string::npos)
         {
-            names.push_back(name);
+            names.push_back(std::move(FileEntry(name)));
             rv = true;
         }
     }
@@ -137,46 +186,75 @@ bool CmdFiles::Add(const std::string& name, bool recurseDirs)
 bool CmdFiles::AddFromPath(const std::string& name, const std::string& path)
 {
     bool rv = false;
-
-    rv = Add(name, false);
-    if (!rv)
+    size_t n = name.find_last_of(DIR_SEP[0]);
+    size_t n1 = name.find_last_of('/');
+    if (n1 != std::string::npos && n != std::string::npos)
+        n = n1 > n ? n1 : n;
+    if (n != std::string::npos)
     {
-        size_t n = name.find_last_of(DIR_SEP[0]);
-        size_t n1 = name.find_last_of('/');
-        if (n1 != std::string::npos && n != std::string::npos)
-            n = n1 > n ? n1 : n;
+        n++;
+    }
+    else
+    {
+        n = name.find_first_of(":");
         if (n != std::string::npos)
-        {
             n++;
-        }
         else
+            n = 0;
+    }
+    std::string internalName = name.substr(n, name.size());
+    n = 0;
+    bool done = false;
+    while (!done)
+    {
+        size_t m = path.find_first_of(PATH_SEP, n);
+        if (m == std::string::npos)
         {
-            n = name.find_first_of(":");
-            if (n != std::string::npos)
-                n++;
-            else
-                n = 0;
+            m = path.size();
+            done = true;
         }
-        std::string internalName = name.substr(n, name.size());
-        n = 0;
-        bool done = false;
-        while (!done)
+        std::string curpath = path.substr(n, m - n);
+        n = m + 1;
+        if (curpath.size() != 0 && curpath.substr(curpath.size() - 1, curpath.size()) != DIR_SEP)
         {
-            size_t m = path.find_first_of(PATH_SEP, n);
-            if (m == std::string::npos)
-            {
-                m = path.size();
-                done = true;
-            }
-            std::string curpath = path.substr(m, n);
-            n = m + 1;
-            if (curpath.size() != 0 && curpath.substr(curpath.size() - 1, curpath.size()) != DIR_SEP)
-            {
-                curpath += DIR_SEP;
-            }
-            curpath += internalName;
-            rv = Add(curpath, false);
+            curpath += DIR_SEP;
+        }
+        curpath += internalName;
+        if (_access(curpath.c_str(), 0) == 0)
+        {
+            names.push_back(std::move(FileEntry(std::move(curpath))));
+            rv = true;
+            break;
         }
     }
+    if (!rv)
+    {
+        names.push_back(std::move(FileEntry(name)));
+        rv = true;
+    }
     return rv;
+}
+bool CmdFiles::Add(CmdSwitchFile& switchFile)
+{
+    if (switchFile.files)
+    {
+        for (auto&& fileEntry : *switchFile.files)
+        {
+            names.push_back(std::move(fileEntry));
+        }
+    }
+    return true;
+}
+void CmdFiles::Remove(const std::string& name)
+{
+    for (int i = 0; i < names.size(); i++)
+    {
+        if (names[i].Name == name)
+        {
+            for (; i < names.size() - 1; i++)
+                names[i] = names[i + 1];
+            names.pop_back();
+            break;
+        }
+    }
 }

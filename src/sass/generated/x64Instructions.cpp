@@ -2,7 +2,7 @@
 
 #include "x64Instructions.h"
 
-const char * const opcodeTable[631] = {
+const char * const opcodeTable[639] = {
 	"",
 	"",
 	"",
@@ -507,6 +507,7 @@ const char * const opcodeTable[631] = {
 	"movupd",
 	"movups",
 	"mpsadbw",
+	"pshufb",
 	"mulpd",
 	"mulps",
 	"mulsd",
@@ -594,6 +595,13 @@ const char * const opcodeTable[631] = {
 	"roundss",
 	"rsqrtps",
 	"rsqrtss",
+	"sha1msg1",
+	"sha1msg2",
+	"sha1nexte",
+	"sha1rnds4",
+	"sha256msg1",
+	"sha256msg2",
+	"sha256rnds2",
 	"shufpd",
 	"shufps",
 	"sqrtpd",
